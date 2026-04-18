@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Transcribe medical audio using Google's MedASR (Conformer-CTC, 105M params)."""
+"""CLI shim for MedASR transcription. The Streamlit app uses the same clinical_ai.asr module."""
 
 from __future__ import annotations
 
@@ -9,29 +9,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env before importing HF/torch — they read env vars (HF_TOKEN, HF_HOME, etc.)
-# at import/config time, so ordering matters.
+# Load .env before importing anything that touches HF — they read HF_TOKEN at import time.
 load_dotenv()
 
-from transformers import pipeline  # noqa: E402
-
+from clinical_ai.asr import load_asr_pipeline, transcribe  # noqa: E402
 from clinical_ai.device import pick_device  # noqa: E402
-
-
-def build_pipeline(model_id: str, device: str):
-    return pipeline(
-        task="automatic-speech-recognition",
-        model=model_id,
-        device=device,
-    )
-
-
-def transcribe(
-    audio_path: Path, model_id: str, device: str, chunk_s: float, stride_s: float
-) -> str:
-    pipe = build_pipeline(model_id, device)
-    result = pipe(str(audio_path), chunk_length_s=chunk_s, stride_length_s=stride_s)
-    return result["text"] if isinstance(result, dict) else str(result)
 
 
 def fetch_sample(model_id: str) -> Path:
@@ -75,7 +57,8 @@ def main() -> int:
     device = pick_device() if args.device == "auto" else args.device
     print(f"[medasr] model={args.model} device={device} audio={audio_path}", file=sys.stderr)
 
-    text = transcribe(audio_path, args.model, device, args.chunk_s, args.stride_s)
+    pipe = load_asr_pipeline(args.model, device)
+    text = transcribe(pipe, audio_path, chunk_s=args.chunk_s, stride_s=args.stride_s)
     print(text)
     return 0
 
