@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import traceback
 
@@ -24,6 +25,7 @@ def init_state() -> None:
     defaults = {
         "audio_bytes": None,
         "audio_name": None,
+        "audio_hash": None,
         "tx": None,
         "tx_edit": "",
         "soap": None,
@@ -94,22 +96,31 @@ def main() -> None:
         "Upload a patient visit recording",
         type=["wav", "mp3", "flac", "m4a"],
     )
-    if upload is not None and upload.name != st.session_state["audio_name"]:
-        st.session_state["audio_bytes"] = upload.getvalue()
-        st.session_state["audio_name"] = upload.name
-        clear_downstream_state(after="audio")
+    if upload is not None:
+        incoming_bytes = upload.getvalue()
+        incoming_hash = hashlib.sha256(incoming_bytes).hexdigest()
+        is_new_upload = (
+            upload.name != st.session_state["audio_name"]
+            or incoming_hash != st.session_state["audio_hash"]
+        )
+        if is_new_upload:
+            st.session_state["audio_bytes"] = incoming_bytes
+            st.session_state["audio_name"] = upload.name
+            st.session_state["audio_hash"] = incoming_hash
+            clear_downstream_state(after="audio")
 
-        # State B: transcribe
-        with st.spinner("Transcribing audio…"):
-            try:
-                text = transcribe(asr_pipe, st.session_state["audio_bytes"])
-            except Exception as exc:
-                show_error("Could not transcribe audio", exc)
-                st.session_state["audio_bytes"] = None
-                st.session_state["audio_name"] = None
-                st.stop()
-        st.session_state["tx"] = text
-        st.session_state["tx_edit"] = text
+            # State B: transcribe
+            with st.spinner("Transcribing audio…"):
+                try:
+                    text = transcribe(asr_pipe, st.session_state["audio_bytes"])
+                except Exception as exc:
+                    show_error("Could not transcribe audio", exc)
+                    st.session_state["audio_bytes"] = None
+                    st.session_state["audio_name"] = None
+                    st.session_state["audio_hash"] = None
+                    st.stop()
+            st.session_state["tx"] = text
+            st.session_state["tx_edit"] = text
 
     if st.session_state["tx"] is None:
         return  # Stay in State A.
@@ -134,6 +145,7 @@ def main() -> None:
                 buf += chunk
                 placeholder.markdown(buf)
         except Exception as exc:
+            placeholder.empty()
             show_error("SOAP generation failed", exc)
             st.session_state["soap"] = None
             st.session_state["soap_edit"] = ""
@@ -164,6 +176,7 @@ def main() -> None:
         if st.button("Start over"):
             st.session_state["audio_bytes"] = None
             st.session_state["audio_name"] = None
+            st.session_state["audio_hash"] = None
             st.session_state["tx"] = None
             st.session_state["tx_edit"] = ""
             st.session_state["soap"] = None
