@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import pytest
+
 from clinical_ai.llm import load_medgemma, stream_soap
 
 
@@ -49,6 +51,7 @@ def test_stream_soap_applies_chat_template_with_messages(mocker):
     assert messages[1]["role"] == "user"
     assert "patient reports headache" in messages[1]["content"]
     assert kwargs.get("add_generation_prompt") is True
+    assert kwargs.get("tokenize") is False
 
 
 def test_stream_soap_threads_max_tokens_and_temperature(mocker):
@@ -64,3 +67,14 @@ def test_stream_soap_threads_max_tokens_and_temperature(mocker):
     assert kwargs["max_tokens"] == 512
     assert kwargs["sampler"] == "SAMPLER"
     assert kwargs["prompt"] == "PROMPT"
+
+
+def test_stream_soap_rejects_empty_transcript(mocker):
+    mocker.patch("clinical_ai.llm.make_sampler", return_value="SAMPLER")
+    mocker.patch("clinical_ai.llm.stream_generate", return_value=iter([]))
+
+    with pytest.raises(ValueError, match="transcript must be a non-empty string"):
+        list(stream_soap(object(), mocker.MagicMock(), ""))
+
+    with pytest.raises(ValueError, match="transcript must be a non-empty string"):
+        list(stream_soap(object(), mocker.MagicMock(), "   \n\t  "))

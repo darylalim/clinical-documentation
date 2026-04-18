@@ -24,6 +24,8 @@ def stream_soap(
     max_tokens: int = 1024,
     temperature: float = 0.2,
 ) -> Iterator[str]:
+    if not transcript or not transcript.strip():
+        raise ValueError("transcript must be a non-empty string")
     messages = format_soap_messages(transcript)
     prompt = tokenizer.apply_chat_template(
         messages,
