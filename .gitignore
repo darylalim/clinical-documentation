@@ -1,0 +1,36 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+
+# uv
+.uv-cache/
+
+# Ruff
+.ruff_cache/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+
+# IDE
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Local audio
+audio/
+*.wav
+*.mp3
+*.flac
+*.m4a
