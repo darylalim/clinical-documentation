@@ -13,16 +13,9 @@ from dotenv import load_dotenv
 # at import/config time, so ordering matters.
 load_dotenv()
 
-import torch  # noqa: E402
 from transformers import pipeline  # noqa: E402
 
-
-def pick_device() -> str:
-    if torch.cuda.is_available():
-        return "cuda"
-    if torch.backends.mps.is_available():
-        return "mps"
-    return "cpu"
+from clinical_ai.device import pick_device  # noqa: E402
 
 
 def build_pipeline(model_id: str, device: str):
