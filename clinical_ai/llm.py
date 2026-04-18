@@ -14,7 +14,8 @@ DEFAULT_MODEL_ID = "mlx-community/medgemma-27b-text-it-4bit"
 
 
 def load_medgemma(model_id: str = DEFAULT_MODEL_ID) -> tuple[Any, Any]:
-    return load(model_id)
+    result: tuple[Any, Any] = load(model_id)[:2]
+    return result
 
 
 def stream_soap(
