@@ -60,4 +60,4 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["transcribe"]
+source = ["clinical_ai"]
