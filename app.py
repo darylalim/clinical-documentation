@@ -6,6 +6,8 @@ import hashlib
 import os
 import sys
 import traceback
+from collections.abc import MutableMapping
+from typing import cast
 
 from dotenv import load_dotenv
 
@@ -41,16 +43,16 @@ def init_state() -> None:
         st.session_state.setdefault(k, v)
 
 
-def clear_downstream_state(after: str) -> None:
+def clear_downstream_state(state: MutableMapping[str, object], after: str) -> None:
     """Enforce the spec's state invariants. `after` names the last valid stage."""
     if after == "audio":
-        st.session_state["tx"] = None
-        st.session_state["tx_edit"] = ""
-        st.session_state["soap"] = None
-        st.session_state["soap_edit"] = ""
+        state["tx"] = None
+        state["tx_edit"] = ""
+        state["soap"] = None
+        state["soap_edit"] = ""
     elif after == "tx":
-        st.session_state["soap"] = None
-        st.session_state["soap_edit"] = ""
+        state["soap"] = None
+        state["soap_edit"] = ""
 
 
 def require_hf_token() -> None:
@@ -130,7 +132,9 @@ def main() -> None:
             st.session_state["audio_bytes"] = incoming_bytes
             st.session_state["audio_name"] = upload.name
             st.session_state["audio_hash"] = incoming_hash
-            clear_downstream_state(after="audio")
+            clear_downstream_state(
+                cast(MutableMapping[str, object], st.session_state), after="audio"
+            )
 
             # State B: transcribe
             with st.spinner("Transcribing audio…"):
