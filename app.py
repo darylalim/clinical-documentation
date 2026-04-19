@@ -16,10 +16,14 @@ import streamlit as st  # noqa: E402
 
 from clinical_ai.asr import load_asr_pipeline, transcribe  # noqa: E402
 from clinical_ai.device import pick_device  # noqa: E402
-from clinical_ai.llm import load_medgemma, stream_soap  # noqa: E402
+from clinical_ai.llm import (  # noqa: E402
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_MODEL_ID,
+    load_medgemma,
+    stream_soap,
+)
 
 ASR_MODEL = "google/medasr"
-LLM_MODEL = "mlx-community/medgemma-27b-text-it-4bit"
 
 
 def init_state() -> None:
@@ -64,7 +68,7 @@ def _asr():
 
 @st.cache_resource
 def _llm():
-    return load_medgemma(LLM_MODEL)
+    return load_medgemma(DEFAULT_MODEL_ID)
 
 
 def show_error(label: str, exc: BaseException) -> None:
@@ -159,7 +163,13 @@ def main() -> None:
         buf = ""
         meta: dict[str, object] = {}
         try:
-            for chunk in stream_soap(model, tokenizer, st.session_state["tx_edit"], meta=meta):
+            for chunk in stream_soap(
+                model,
+                tokenizer,
+                st.session_state["tx_edit"],
+                max_tokens=DEFAULT_MAX_TOKENS,
+                meta=meta,
+            ):
                 buf += chunk
                 placeholder.markdown(buf)
         except Exception as exc:
