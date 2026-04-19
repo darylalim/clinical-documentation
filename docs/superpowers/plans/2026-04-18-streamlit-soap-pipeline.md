@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-04-18-streamlit-soap-pipeline-design.md`
 
+**Note:** The `clinical_ai` package was later renamed to `clinical_documentation` on 2026-04-19. References below reflect the original naming.
+
 ---
 
 ## File Structure

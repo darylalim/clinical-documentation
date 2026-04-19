@@ -1,7 +1,7 @@
 [project]
-name = "clinical-ai"
+name = "clinical-documentation"
 version = "0.1.0"
-description = "Clinical AI platform — MedASR transcription with MedGemma SOAP-note generation."
+description = "Local-first pipeline for Apple Silicon: MedASR transcription + MedGemma SOAP-note drafts."
 requires-python = ">=3.10,<3.13"
 dependencies = [
     "transformers @ git+https://github.com/huggingface/transformers.git@65dc261512cbdb1ee72b88ae5b222f2605aad8e5",
@@ -46,7 +46,7 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"clinical_ai/prompts.py" = ["E501"]
+"clinical_documentation/prompts.py" = ["E501"]
 
 [tool.ty.environment]
 python-version = "3.10"
@@ -60,4 +60,4 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["clinical_ai", "transcribe"]
+source = ["clinical_documentation", "transcribe"]

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI shim for MedASR transcription. The Streamlit app uses the same clinical_ai.asr module."""
+"""CLI shim for MedASR transcription (same clinical_documentation.asr as the Streamlit app)."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from dotenv import load_dotenv
 # Load .env before importing anything that touches HF — they read HF_TOKEN at import time.
 load_dotenv()
 
-from clinical_ai.asr import load_asr_pipeline, transcribe  # noqa: E402
-from clinical_ai.device import pick_device  # noqa: E402
+from clinical_documentation.asr import load_asr_pipeline, transcribe  # noqa: E402
+from clinical_documentation.device import pick_device  # noqa: E402
 
 
 def require_hf_token() -> None:

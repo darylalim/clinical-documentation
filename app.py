@@ -16,9 +16,9 @@ load_dotenv()
 
 import streamlit as st  # noqa: E402
 
-from clinical_ai.asr import load_asr_pipeline, transcribe  # noqa: E402
-from clinical_ai.device import pick_device  # noqa: E402
-from clinical_ai.llm import (  # noqa: E402
+from clinical_documentation.asr import load_asr_pipeline, transcribe  # noqa: E402
+from clinical_documentation.device import pick_device  # noqa: E402
+from clinical_documentation.llm import (  # noqa: E402
     DEFAULT_MAX_TOKENS,
     DEFAULT_MODEL_ID,
     load_medgemma,
@@ -80,8 +80,8 @@ def show_error(label: str, exc: BaseException) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Clinical AI — SOAP", layout="wide")
-    st.title("Clinical AI — visit transcription & SOAP draft")
+    st.set_page_config(page_title="Clinical Documentation — SOAP", layout="wide")
+    st.title("Clinical Documentation — visit transcription & SOAP draft")
     init_state()
     require_hf_token()
 

@@ -1,4 +1,4 @@
-from clinical_ai.prompts import SOAP_SYSTEM_PROMPT, format_soap_messages
+from clinical_documentation.prompts import SOAP_SYSTEM_PROMPT, format_soap_messages
 
 
 def test_system_prompt_mentions_soap_and_all_four_sections():

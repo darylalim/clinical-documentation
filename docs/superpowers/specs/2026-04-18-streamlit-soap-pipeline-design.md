@@ -3,6 +3,7 @@
 **Date:** 2026-04-18
 **Status:** Approved (pending user review of this document)
 **Scope:** Replace the CLI-only entry point with a Streamlit UI that chains MedASR (transcription) and MedGemma (SOAP note generation), running fully locally on a 32 GB Apple Silicon Mac.
+**Note:** The `clinical_ai` package was later renamed to `clinical_documentation` on 2026-04-19. References below reflect the original naming.
 
 ---
 
