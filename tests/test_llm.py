@@ -23,7 +23,7 @@ def test_stream_soap_populates_meta_finish_reason(mocker):
 
 def test_load_medgemma_calls_mlx_load_with_default_model_id(mocker):
     fake_model = object()
-    fake_tokenizer = object()
+    fake_tokenizer = mocker.MagicMock()
     load_mock = mocker.patch(
         "clinical_documentation.llm.load", return_value=(fake_model, fake_tokenizer)
     )
@@ -36,11 +36,24 @@ def test_load_medgemma_calls_mlx_load_with_default_model_id(mocker):
 
 
 def test_load_medgemma_accepts_custom_model_id(mocker):
-    load_mock = mocker.patch("clinical_documentation.llm.load", return_value=(object(), object()))
+    load_mock = mocker.patch(
+        "clinical_documentation.llm.load", return_value=(object(), mocker.MagicMock())
+    )
 
     load_medgemma("mlx-community/some-other-checkpoint")
 
     load_mock.assert_called_once_with("mlx-community/some-other-checkpoint")
+
+
+def test_load_medgemma_registers_end_of_turn_as_stop_token(mocker):
+    """Regression: mlx-community Gemma quants don't include <end_of_turn> by default
+    (CLAUDE.md invariant)."""
+    fake_tokenizer = mocker.MagicMock()
+    mocker.patch("clinical_documentation.llm.load", return_value=(object(), fake_tokenizer))
+
+    load_medgemma()
+
+    fake_tokenizer.add_eos_token.assert_called_once_with("<end_of_turn>")
 
 
 def test_stream_soap_yields_chunks_in_order(mocker):

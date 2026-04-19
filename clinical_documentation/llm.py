@@ -15,8 +15,11 @@ DEFAULT_MAX_TOKENS = 2048
 
 
 def load_medgemma(model_id: str = DEFAULT_MODEL_ID) -> tuple[Any, Any]:
-    result: tuple[Any, Any] = load(model_id)[:2]
-    return result
+    model, tokenizer = load(model_id)[:2]
+    # MLX-community Gemma quants default eos_token_ids to {<eos>} only; the instruct
+    # model emits <end_of_turn> to close a turn, so without this the stream never stops.
+    tokenizer.add_eos_token("<end_of_turn>")
+    return model, tokenizer
 
 
 def stream_soap(

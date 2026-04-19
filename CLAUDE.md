@@ -35,6 +35,7 @@ Local-first clinical documentation pipeline for Apple Silicon. Transcribes physi
 - No PHI on disk. Audio bytes live in `st.session_state`; the only artifact is a user-initiated `.md` download.
 - Upload cap is enforced in **two** places: `.streamlit/config.toml` (`maxUploadSize = 100`) *and* a soft guard in `app.py`. Keep them in sync.
 - `clinical_documentation/prompts.py` is the single source of truth for the SOAP system prompt. Iterate there, not inside `llm.py`.
+- `load_medgemma()` must register `<end_of_turn>` as a stop token via `tokenizer.add_eos_token("<end_of_turn>")`. MLX-community Gemma quants default stop tokens to `{<eos>}` only; without this, `stream_generate` runs to `max_tokens` and the model loops on post-hoc "thought" scaffolding.
 
 ## Gated models
 
