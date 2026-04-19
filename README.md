@@ -1,29 +1,55 @@
 # clinical-ai
 
-Clinical AI platform.
+Local Apple Silicon pipeline for clinical documentation:
 
-## MedASR transcription
+1. **Transcribe** a patient-visit recording with [Google MedASR](https://huggingface.co/google/medasr) (Conformer-CTC, 105M parameters).
+2. **Review** the transcript and fix any misheard terms.
+3. **Generate** a SOAP note draft with [MedGemma-27B](https://huggingface.co/mlx-community/medgemma-27b-text-it-4bit) (MLX 4-bit).
 
-Transcribe physician dictation with [Google MedASR](https://huggingface.co/google/medasr) — a 105M-parameter Conformer-CTC model specialized for radiology and general medical speech.
+Everything runs locally. Audio and generated notes stay in process memory — the only artifact written to disk is a Markdown file you download from the UI.
 
-### One-time setup
+## One-time setup
 
-1. **Accept the license.** Visit https://huggingface.co/google/medasr, sign in, and click *Agree and access repository*. MedASR is gated under the Health AI Developer Foundations terms.
+1. **Accept the licenses.** Both models are gated under the Health AI Developer Foundations terms. Visit each page, sign in, and click *Agree and access repository*:
+   - https://huggingface.co/google/medasr
+   - https://huggingface.co/google/medgemma-27b-text-it
+
 2. **Install dependencies** (creates `.venv/` automatically):
    ```bash
    uv sync
    ```
-   The first install pulls a pinned build of `transformers` from source (MedASR needs v5.0+) and may take a few minutes.
-3. **Set your Hugging Face token.** Create a read-access token at https://huggingface.co/settings/tokens, then copy the template and paste it in:
+   The first install pulls a pinned build of `transformers` from source (MedASR needs v5.0+), plus `streamlit`, `mlx-lm`, and `mlx`. Expect a few minutes.
+
+3. **Set your Hugging Face token.** Create a read-access token at https://huggingface.co/settings/tokens, then:
    ```bash
    cp .env.example .env
    # edit .env and set HF_TOKEN=hf_...
    ```
-   The script loads `.env` automatically via `python-dotenv`. `.env` is gitignored — do not commit it.
+   `.env` is gitignored. Both the CLI and the Streamlit app call `load_dotenv()` before any HF import.
 
-### Run it
+## Streamlit app
 
-Transcribe the sample audio bundled with the model repo:
+```bash
+uv run streamlit run app.py
+```
+
+On first run, MedGemma weights (~14 GB) download into `~/.cache/huggingface` — be patient. Subsequent launches load from cache in seconds.
+
+The UI is a single page with five states:
+
+1. **Upload** a `.wav` / `.mp3` / `.flac` / `.m4a` recording.
+2. **Transcribe** (automatic on upload). Transcript appears in an editable text area.
+3. **Review** the transcript and fix any ASR errors before generating.
+4. **Generate SOAP note.** Output streams token-by-token into a Markdown view.
+5. **Edit and download** the SOAP note as `soap_note.md`, or start over.
+
+Outputs are **drafts**. A clinician must review and edit before signing.
+
+## CLI
+
+The CLI transcribes audio only (no SOAP generation). Useful for scripted batch transcription or debugging the ASR pipeline.
+
+Transcribe the sample audio bundled with the MedASR model repo:
 ```bash
 uv run transcribe.py --sample
 ```
@@ -44,45 +70,65 @@ uv run transcribe.py --help
 | `--device` | `auto` | `cpu`, `cuda`, or `mps`. Auto picks the best available. |
 | `--chunk-s` | `20.0` | Seconds per inference chunk (long audio is split). |
 | `--stride-s` | `2.0` | Overlap between chunks to avoid word splits. |
+| `--sample` | — | Fetch and transcribe the MedASR sample audio. |
 
-### Notes
+## Notes
 
 - Input audio is resampled to 16 kHz mono automatically.
-- First model run downloads ~400 MB of weights to `~/.cache/huggingface`.
-- On Apple Silicon, `--device mps` works but is slower than CUDA; `cpu` is a reliable fallback.
-- MedASR is a **foundation** model — outputs are preliminary and must be verified before any clinical use. See the [model card limitations](https://huggingface.co/google/medasr#limitations) for speaker, language, and vocabulary caveats.
+- MedGemma-27B at 4-bit needs ~14 GB of unified memory. 32 GB+ Apple Silicon is comfortable; 16 GB may thrash.
+- Outputs are **preliminary** and must be verified before any clinical use. See each model card for speaker, language, and vocabulary caveats.
+
+## Project layout
+
+```
+clinical_ai/          # backend package (no streamlit)
+  asr.py              # MedASR loader + transcribe
+  device.py           # pick_device
+  llm.py              # MedGemma loader + stream_soap
+  prompts.py          # SOAP system prompt + message formatter
+app.py                # Streamlit UI (single entry point)
+transcribe.py         # CLI shim over clinical_ai.asr
+tests/
+  test_asr.py
+  test_device.py
+  test_integration.py  # gated by @pytest.mark.integration
+  test_llm.py
+  test_prompts.py
+  test_transcribe.py   # covers require_hf_token
+docs/superpowers/
+  specs/              # design spec
+  plans/              # implementation plan
+```
 
 ## Development
 
-[Ruff](https://docs.astral.sh/ruff/) handles both linting and formatting. It's in the `dev` dependency group and installed by `uv sync`.
-
+[Ruff](https://docs.astral.sh/ruff/) handles lint and format:
 ```bash
-uv run ruff format .        # apply formatting
-uv run ruff check .         # report lint issues
-uv run ruff check --fix .   # apply auto-fixable lints
+uv run ruff format .
+uv run ruff check .
+uv run ruff check --fix .
 ```
-
-Config lives under `[tool.ruff]` in `pyproject.toml` — 100-char line length, `py310` target, rule set `E W F I B UP SIM C4 RUF`.
 
 ### Type checking
 
-[ty](https://docs.astral.sh/ty/) is Astral's Python type checker and language server. It's in the `dev` dependency group and installed by `uv sync`.
-
+[ty](https://docs.astral.sh/ty/) is Astral's Python type checker and LSP:
 ```bash
-uv run ty check             # type-check the project
-uv run ty server            # run the language server (LSP over stdio)
+uv run ty check
+uv run ty server   # LSP over stdio
 ```
 
-Editor integration: most editors can launch the LSP via `uv run ty server`. For VS Code, install the [ty extension](https://marketplace.visualstudio.com/items?itemName=astral-sh.ty); for Zed/Neovim/Helix, point the LSP client at that command. Config lives under `[tool.ty]` in `pyproject.toml` (currently just `python-version = "3.10"`).
+Editor integration: VS Code uses the [ty extension](https://marketplace.visualstudio.com/items?itemName=astral-sh.ty); Zed/Neovim/Helix point their LSP client at `uv run ty server`.
 
 ### Testing
 
-[pytest](https://docs.pytest.org/) is the test runner, with [pytest-cov](https://pytest-cov.readthedocs.io/) for coverage and [pytest-mock](https://pytest-mock.readthedocs.io/) for the `mocker` fixture. All three live in the `dev` dependency group.
+[pytest](https://docs.pytest.org/) with [pytest-cov](https://pytest-cov.readthedocs.io/) and [pytest-mock](https://pytest-mock.readthedocs.io/):
 
 ```bash
-uv run pytest                                       # run unit tests
-uv run pytest --cov=transcribe --cov-report=term-missing   # with coverage
-uv run pytest -m integration                        # opt into real-model tests
+uv run pytest                                             # 21 unit tests
+uv run pytest --cov=clinical_ai --cov-report=term-missing # with coverage
+uv run pytest -m integration                              # real-model integration test
 ```
 
-Tests live under `tests/`. Anything that hits the real MedASR model or the network must be marked `@pytest.mark.integration` — the default invocation deselects that marker, so unit tests stay fast and offline. Config lives under `[tool.pytest.ini_options]` and `[tool.coverage.run]` in `pyproject.toml`.
+Tests marked `@pytest.mark.integration` (currently one, covering MedASR) are excluded from the default run. They download real model weights and hit the network. Opt in with `-m integration`.
+
+Config lives under `[tool.ruff]`, `[tool.ty.environment]`, and `[tool.pytest.ini_options]` in `pyproject.toml`.

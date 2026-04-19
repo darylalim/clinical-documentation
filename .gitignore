@@ -21,6 +21,9 @@ dist/
 .pytest_cache/
 .coverage
 
+# Streamlit
+.streamlit/
+
 # IDE
 .vscode/
 .idea/
