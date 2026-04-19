@@ -24,6 +24,7 @@ from clinical_ai.llm import (  # noqa: E402
 )
 
 ASR_MODEL = "google/medasr"
+MAX_UPLOAD_MB = 100
 
 
 def init_state() -> None:
@@ -113,6 +114,13 @@ def main() -> None:
     )
     if upload is not None:
         incoming_bytes = upload.getvalue()
+        if len(incoming_bytes) > MAX_UPLOAD_MB * 1024 * 1024:
+            size_mb = len(incoming_bytes) // (1024 * 1024)
+            st.error(
+                f"File too large ({size_mb} MB). Maximum upload size is "
+                f"{MAX_UPLOAD_MB} MB — please split long recordings."
+            )
+            st.stop()
         incoming_hash = hashlib.sha256(incoming_bytes).hexdigest()
         is_new_upload = (
             upload.name != st.session_state["audio_name"]

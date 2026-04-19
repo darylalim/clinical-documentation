@@ -22,7 +22,7 @@ dist/
 .coverage
 
 # Streamlit
-.streamlit/
+.streamlit/secrets.toml
 
 # IDE
 .vscode/
