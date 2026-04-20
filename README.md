@@ -27,7 +27,7 @@ Everything runs locally. Audio and generated notes stay in process memory — th
    cp .env.example .env
    # edit .env and set HF_TOKEN=hf_...
    ```
-   `.env` is gitignored. Both the CLI and the Streamlit app call `load_dotenv()` before any HF import.
+   `.env` is gitignored. The Streamlit app calls `load_dotenv()` before any HF import.
 
 ## Streamlit app
 
@@ -49,33 +49,6 @@ The UI is a single page with five states:
 
 Outputs are **drafts**. A clinician must review and edit before signing.
 
-## CLI
-
-The CLI transcribes audio only (no SOAP generation). Useful for scripted batch transcription or debugging the ASR pipeline.
-
-Transcribe the sample audio bundled with the MedASR model repo:
-```bash
-uv run transcribe.py --sample
-```
-
-Transcribe your own file:
-```bash
-uv run transcribe.py path/to/audio.wav
-```
-
-All options:
-```bash
-uv run transcribe.py --help
-```
-
-| Flag | Default | Notes |
-|---|---|---|
-| `--model` | `google/medasr` | Any HF ASR checkpoint. |
-| `--device` | `auto` | `cpu`, `cuda`, or `mps`. Auto picks the best available. |
-| `--chunk-s` | `20.0` | Seconds per inference chunk (long audio is split). |
-| `--stride-s` | `2.0` | Overlap between chunks to avoid word splits. |
-| `--sample` | — | Transcribe the MedASR sample audio. Prefers local `samples/test_audio.wav` if present; otherwise downloads from the model repo. |
-
 ## Notes
 
 - Input audio is resampled to 16 kHz mono automatically.
@@ -91,7 +64,6 @@ clinical_documentation/    # backend package (no streamlit)
   llm.py                   # MedGemma loader + stream_soap
   prompts.py               # SOAP system prompt + message formatter
 app.py                     # Streamlit UI (single entry point)
-transcribe.py              # CLI shim over clinical_documentation.asr
 .streamlit/config.toml     # server config (maxUploadSize = 100 MB)
 tests/
   test_app.py              # state-machine helpers + AppTest smoke
@@ -100,7 +72,6 @@ tests/
   test_integration.py      # gated by @pytest.mark.integration
   test_llm.py              # load_medgemma + stream_soap
   test_prompts.py          # SOAP prompt + format_soap_messages
-  test_transcribe.py       # CLI require_hf_token + fetch_sample
 ```
 
 ## Development
@@ -127,7 +98,7 @@ Editor integration: VS Code uses the [ty extension](https://marketplace.visualst
 [pytest](https://docs.pytest.org/) with [pytest-cov](https://pytest-cov.readthedocs.io/) and [pytest-mock](https://pytest-mock.readthedocs.io/):
 
 ```bash
-uv run pytest                                             # 29 unit tests
+uv run pytest                                             # 24 unit tests
 uv run pytest --cov=clinical_documentation --cov-report=term-missing # with coverage
 uv run pytest -m integration                              # real-model integration test
 ```

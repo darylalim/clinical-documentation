@@ -10,17 +10,14 @@ Local-first clinical documentation pipeline for Apple Silicon. Transcribes physi
   - `llm.py` — MedGemma MLX loader + `stream_soap()` generator.
   - `prompts.py` — SOAP system prompt and `format_soap_messages()`.
 - `app.py` — Streamlit UI. The only file that imports `streamlit`.
-- `transcribe.py` — thin CLI shim over `clinical_documentation.asr`.
 - `.streamlit/config.toml` — server config (caps upload at `maxUploadSize = 100` MB).
-- `tests/` — 29 unit tests + 1 gated integration test.
+- `tests/` — 24 unit tests + 1 gated integration test.
 
 ## Commands
 
 | Task | Command |
 |---|---|
 | Launch UI | `uv run streamlit run app.py` |
-| CLI transcribe (sample) | `uv run transcribe.py --sample` |
-| CLI transcribe (file) | `uv run transcribe.py path/to/audio.wav` |
 | Unit tests | `uv run pytest` |
 | Integration test | `uv run pytest -m integration` |
 | Format | `uv run ruff format .` |
@@ -30,7 +27,7 @@ Local-first clinical documentation pipeline for Apple Silicon. Transcribes physi
 
 ## Load-bearing invariants
 
-- `load_dotenv()` runs **before** any import of `transformers`, `torch`, or `mlx_lm`. They read `HF_TOKEN` at import time. Late imports in `app.py` and `transcribe.py` carry `# noqa: E402`.
+- `load_dotenv()` runs **before** any import of `transformers`, `torch`, or `mlx_lm`. They read `HF_TOKEN` at import time. Late imports in `app.py` carry `# noqa: E402`.
 - `clinical_documentation/` modules never import `streamlit`. `app.py` is the only Streamlit entry point.
 - No PHI on disk. Audio bytes live in `st.session_state`; the only artifact is a user-initiated `.md` download.
 - Upload cap is enforced in **two** places: `.streamlit/config.toml` (`maxUploadSize = 100`) *and* a soft guard in `app.py`. Keep them in sync.
