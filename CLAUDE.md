@@ -5,13 +5,14 @@ Local-first clinical documentation pipeline for Apple Silicon. Transcribes physi
 ## Architecture
 
 - `clinical_documentation/` — backend package. No Streamlit knowledge.
+  - `__init__.py` — re-exports the public API; `__all__` is the canonical surface.
   - `device.py` — `pick_device()` for PyTorch (CUDA → MPS → CPU).
   - `asr.py` — MedASR pipeline loader + `transcribe()` helper.
   - `llm.py` — MedGemma MLX loader + `stream_soap()` generator.
   - `prompts.py` — SOAP system prompt and `format_soap_messages()`.
 - `app.py` — Streamlit UI. The only file that imports `streamlit`.
 - `.streamlit/config.toml` — server config (caps upload at `maxUploadSize = 100` MB).
-- `tests/` — 24 unit tests + 1 gated integration test.
+- `tests/` — 25 unit tests + 1 gated integration test.
 
 ## Commands
 
@@ -33,6 +34,7 @@ Local-first clinical documentation pipeline for Apple Silicon. Transcribes physi
 - Upload cap is enforced in **two** places: `.streamlit/config.toml` (`maxUploadSize = 100`) *and* a soft guard in `app.py`. Keep them in sync.
 - `clinical_documentation/prompts.py` is the single source of truth for the SOAP system prompt. Iterate there, not inside `llm.py`.
 - `load_medgemma()` must register `<end_of_turn>` as a stop token via `tokenizer.add_eos_token("<end_of_turn>")`. MLX-community Gemma quants default stop tokens to `{<eos>}` only; without this, `stream_generate` runs to `max_tokens` and the model loops on post-hoc "thought" scaffolding.
+- `clinical_documentation/__init__.py` re-exports the backend's public API; `__all__` is the canonical surface and `tests/test_init.py` keeps it in sync with the defining modules.
 
 ## Gated models
 

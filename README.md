@@ -59,6 +59,7 @@ Outputs are **drafts**. A clinician must review and edit before signing.
 
 ```
 clinical_documentation/    # backend package (no streamlit)
+  __init__.py              # public API re-exports (__all__ is canonical)
   asr.py                   # MedASR loader + transcribe
   device.py                # pick_device
   llm.py                   # MedGemma loader + stream_soap
@@ -69,6 +70,7 @@ tests/
   test_app.py              # state-machine helpers + AppTest smoke
   test_asr.py              # load_asr_pipeline + transcribe
   test_device.py           # pick_device precedence
+  test_init.py             # public API surface + re-export identity
   test_integration.py      # gated by @pytest.mark.integration
   test_llm.py              # load_medgemma + stream_soap
   test_prompts.py          # SOAP prompt + format_soap_messages
@@ -98,7 +100,7 @@ Editor integration: VS Code uses the [ty extension](https://marketplace.visualst
 [pytest](https://docs.pytest.org/) with [pytest-cov](https://pytest-cov.readthedocs.io/) and [pytest-mock](https://pytest-mock.readthedocs.io/):
 
 ```bash
-uv run pytest                                             # 24 unit tests
+uv run pytest                                             # 25 unit tests
 uv run pytest --cov=clinical_documentation --cov-report=term-missing # with coverage
 uv run pytest -m integration                              # real-model integration test
 ```
