@@ -16,13 +16,14 @@ load_dotenv()
 
 import streamlit as st  # noqa: E402
 
-from clinical_documentation.asr import load_asr_pipeline, transcribe  # noqa: E402
-from clinical_documentation.device import pick_device  # noqa: E402
-from clinical_documentation.llm import (  # noqa: E402
+from clinical_documentation import (  # noqa: E402
     DEFAULT_MAX_TOKENS,
     DEFAULT_MODEL_ID,
+    load_asr_pipeline,
     load_medgemma,
+    pick_device,
     stream_soap,
+    transcribe,
 )
 
 ASR_MODEL = "google/medasr"
