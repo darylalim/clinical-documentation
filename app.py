@@ -81,8 +81,8 @@ def show_error(label: str, exc: BaseException) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Clinical Documentation — SOAP", layout="wide")
-    st.title("Clinical Documentation — visit transcription & SOAP draft")
+    st.set_page_config(page_title="Medical Scribe — SOAP", layout="wide")
+    st.title("Medical Scribe — visit transcription & SOAP draft")
     init_state()
     require_hf_token()
 
