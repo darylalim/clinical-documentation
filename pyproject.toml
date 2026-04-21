@@ -1,5 +1,5 @@
 [project]
-name = "clinical-documentation"
+name = "medical-scribe"
 version = "0.1.0"
 description = "Local-first pipeline for Apple Silicon: MedASR transcription + MedGemma SOAP-note drafts."
 requires-python = ">=3.10,<3.13"
