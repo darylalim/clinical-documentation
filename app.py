@@ -28,20 +28,25 @@ from medical_scribe import (  # noqa: E402
 
 ASR_MODEL = "google/medasr"
 MAX_UPLOAD_MB = 100
+INITIAL_STATE = {
+    "audio_bytes": None,
+    "audio_name": None,
+    "audio_hash": None,
+    "tx": None,
+    "tx_edit": "",
+    "soap": None,
+    "soap_edit": "",
+}
 
 
 def init_state() -> None:
-    defaults = {
-        "audio_bytes": None,
-        "audio_name": None,
-        "audio_hash": None,
-        "tx": None,
-        "tx_edit": "",
-        "soap": None,
-        "soap_edit": "",
-    }
-    for k, v in defaults.items():
+    for k, v in INITIAL_STATE.items():
         st.session_state.setdefault(k, v)
+
+
+def reset_state() -> None:
+    for k, v in INITIAL_STATE.items():
+        st.session_state[k] = v
 
 
 def clear_downstream_state(state: MutableMapping[str, object], after: str) -> None:
@@ -133,9 +138,7 @@ def main() -> None:
                     text = transcribe(asr_pipe, st.session_state["audio_bytes"])
                 except Exception as exc:
                     show_error("Could not transcribe audio", exc)
-                    st.session_state["audio_bytes"] = None
-                    st.session_state["audio_name"] = None
-                    st.session_state["audio_hash"] = None
+                    reset_state()
                     st.stop()
             st.session_state["tx"] = text
             st.session_state["tx_edit"] = text
@@ -211,13 +214,7 @@ def main() -> None:
         )
     with col2:
         if st.button("Start over"):
-            st.session_state["audio_bytes"] = None
-            st.session_state["audio_name"] = None
-            st.session_state["audio_hash"] = None
-            st.session_state["tx"] = None
-            st.session_state["tx_edit"] = ""
-            st.session_state["soap"] = None
-            st.session_state["soap_edit"] = ""
+            reset_state()
             st.rerun()
 
 
