@@ -8,6 +8,10 @@ Local-first pipeline for Apple Silicon:
 
 Everything runs locally. Audio and generated notes stay in process memory — the only artifact written to disk is a Markdown file you download from the UI.
 
+## Safety
+
+Outputs are **preliminary drafts**. A clinician must review and edit every SOAP note before it enters the clinical record or is signed. See each model card for speaker, language, and vocabulary caveats.
+
 ## One-time setup
 
 1. **Accept the licenses.** Both models are gated under the Health AI Developer Foundations terms. Visit each page, sign in, and click *Agree and access repository*:
@@ -47,13 +51,10 @@ The UI is a single page with five states:
 4. **Generate SOAP note.** Output streams token-by-token into a Markdown view.
 5. **Edit and download** the SOAP note as `soap_note.md`, or start over.
 
-Outputs are **drafts**. A clinician must review and edit before signing.
-
 ## Notes
 
 - Input audio is resampled to 16 kHz mono automatically.
 - MedGemma-27B at 4-bit needs ~14 GB of unified memory. 32 GB+ Apple Silicon is comfortable; 16 GB may thrash.
-- Outputs are **preliminary** and must be verified before any clinical use. See each model card for speaker, language, and vocabulary caveats.
 
 ## Project layout
 
